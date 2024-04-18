@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="padding">5dp</dimen>
+    <dimen name="padding_10">10dp</dimen>
+    <dimen name="_50dp">50dp</dimen>
+</resources>
