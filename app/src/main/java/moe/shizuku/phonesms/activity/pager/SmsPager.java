@@ -108,7 +108,7 @@ public class SmsPager extends RecyclerAdapter<PagerSmsBinding> implements Runnab
     public boolean onMenuItemClick(MenuItem menuItem) {
         if (menuItem.getItemId() == R.id.SingleSMS) {
             dialogInput();
-        } else {
+        } else if (menuItem.getItemId() == R.id.MultipleSMS) {
             getContext().startActivity(new Intent(getContext(), MultipleSmsActivity.class));
         }
         return false;
