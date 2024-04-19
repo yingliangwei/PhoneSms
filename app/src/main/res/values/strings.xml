@@ -71,4 +71,5 @@
     <string name="Open_Source">项目开源</string>
     <string name="success">成功</string>
     <string name="Not_set_url">未设置url</string>
+    <string name="copy_phone">复制号码</string>
 </resources>

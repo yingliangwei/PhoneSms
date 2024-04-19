@@ -13,10 +13,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
 import android.telephony.SmsManager;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import java.util.ArrayList;
@@ -28,6 +30,7 @@ import moe.shizuku.phonesms.app.AppXCompatActivity;
 import moe.shizuku.phonesms.databinding.ActivitySmsDetailedBinding;
 import moe.shizuku.phonesms.entity.SmsEntity;
 import moe.shizuku.phonesms.sqlite.DBOpenHelper;
+import moe.shizuku.phonesms.util.DynamicSmsVerifyCode;
 import moe.shizuku.phonesms.util.Handler;
 import moe.shizuku.phonesms.util.OnHandler;
 import moe.shizuku.phonesms.util.ReceiverUtil;
@@ -45,11 +48,23 @@ public class SmsDetailedActivity extends AppXCompatActivity<ActivitySmsDetailedB
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        initToolbar();
         initIntent();
         initReceiver();
         initRecycler();
         initData();
         initView();
+    }
+
+    private void initToolbar() {
+        binding.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+                DynamicSmsVerifyCode.copyToClipboard(SmsDetailedActivity.this, sender);
+                Toast.makeText(SmsDetailedActivity.this, R.string.success, Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        });
     }
 
     private void initIntent() {
@@ -148,7 +163,7 @@ public class SmsDetailedActivity extends AppXCompatActivity<ActivitySmsDetailedB
     public void run() {
         DBOpenHelper dbOpenHelper = new DBOpenHelper(this, "sms", null, 1);
         SQLiteDatabase database = dbOpenHelper.getReadableDatabase();
-        Cursor cursor = database.query("sms_message", new String[]{"sender", "message", "sim", "timestamp", "send","sms_send"}, "sender=?", new String[]{sender}, null, null, null);
+        Cursor cursor = database.query("sms_message", new String[]{"sender", "message", "sim", "timestamp", "send", "sms_send"}, "sender=?", new String[]{sender}, null, null, null);
         if (cursor != null && cursor.moveToFirst()) {
             int senderIndex = cursor.getColumnIndex("sender");
             int messageIndex = cursor.getColumnIndex("message");
