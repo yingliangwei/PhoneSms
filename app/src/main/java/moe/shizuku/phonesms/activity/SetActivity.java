@@ -84,13 +84,13 @@ public class SetActivity extends AppXCompatActivity<ActivitySetBinding> implemen
         SharedPreferencesManager sharedPreferencesManager = new SharedPreferencesManager(this, SharedPreferencesManager.user);
         if (sharedPreferencesManager.getInt("isVip", 0) == 1) {
             if (entity.getKey().equals("verification")) {
-                sharedPreferencesManager.savaBool("verification", box);
+                this.sharedPreferencesManager.savaBool("verification", box);
             } else if (entity.getKey().equals("postSms")) {
                 String url = sharedPreferencesManager.getString("url", null);
                 if (url == null) {
                     Toast.makeText(this, R.string.Not_set_url, Toast.LENGTH_SHORT).show();
                 } else {
-                    sharedPreferencesManager.savaBool("postSms", box);
+                    this.sharedPreferencesManager.savaBool("postSms", box);
                 }
             }
         } else {
