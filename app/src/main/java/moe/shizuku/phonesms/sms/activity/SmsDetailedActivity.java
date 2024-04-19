@@ -148,7 +148,7 @@ public class SmsDetailedActivity extends AppXCompatActivity<ActivitySmsDetailedB
     public void run() {
         DBOpenHelper dbOpenHelper = new DBOpenHelper(this, "sms", null, 1);
         SQLiteDatabase database = dbOpenHelper.getReadableDatabase();
-        Cursor cursor = database.query("sms_message", new String[]{"sender", "message", "sim", "timestamp", "send"}, "sender=?", new String[]{sender}, null, null, null);
+        Cursor cursor = database.query("sms_message", new String[]{"sender", "message", "sim", "timestamp", "send","sms_send"}, "sender=?", new String[]{sender}, null, null, null);
         if (cursor != null && cursor.moveToFirst()) {
             int senderIndex = cursor.getColumnIndex("sender");
             int messageIndex = cursor.getColumnIndex("message");

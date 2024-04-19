@@ -17,16 +17,30 @@ import android.telephony.SmsMessage;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
 import com.baolian.network.util.SharedPreferencesManager;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import moe.shizuku.phonesms.R;
 import moe.shizuku.phonesms.sms.activity.SmsDetailedActivity;
 import moe.shizuku.phonesms.sqlite.DBOpenHelper;
 import moe.shizuku.phonesms.util.DynamicSmsVerifyCode;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
-public class SmsReceiver extends BroadcastReceiver {
+public class SmsReceiver extends BroadcastReceiver implements Callback {
     private final String CHANNEL_ID = "12345678d5f54f9";
     private final CharSequence CHANNEL_NAME = "12z345658788555";
     private final int NOTIFICATION_ID = 1;
@@ -35,7 +49,37 @@ public class SmsReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction() == null) return;
         if (!intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED")) return;
-        insertSms(context, intent);
+        try {
+            insertSms(context, intent);
+            okhttp(context, intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void okhttp(Context context, Intent intent) throws JSONException {
+        SharedPreferencesManager sharedPreferencesManager = new SharedPreferencesManager(context, SharedPreferencesManager.set);
+        boolean postSms = sharedPreferencesManager.getBool("postSms", false);
+        if (!postSms) return;
+        String url = sharedPreferencesManager.getString("url", null);
+        Bundle bundle = intent.getExtras();
+        if (bundle == null) return;
+        SmsMessage[] smsMessages = Telephony.Sms.Intents.getMessagesFromIntent(intent);
+        int slot = bundle.getInt("android.telephony.extra.SLOT_INDEX", -1);//接收卡槽
+        for (SmsMessage smsMessage : smsMessages) {
+            String sender = smsMessage.getOriginatingAddress();  //发送人号码
+            String messageBody = smsMessage.getMessageBody();//短信内容
+            long timestampMillis = smsMessage.getTimestampMillis();//时间
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("sender", sender);
+            jsonObject.put("messageBody", messageBody);
+            jsonObject.put("timestampMillis", timestampMillis);
+            jsonObject.put("slot", slot);
+            OkHttpClient okHttpClient = new OkHttpClient();
+            RequestBody requestBody = FormBody.create(jsonObject.toString().getBytes(StandardCharsets.UTF_8));
+            Request request = new Request.Builder().url(url).post(requestBody).build();
+            okHttpClient.newCall(request).enqueue(this);
+        }
     }
 
     private void insertSms(Context context, Intent intent) {
@@ -82,6 +126,7 @@ public class SmsReceiver extends BroadcastReceiver {
         context.sendBroadcast(new Intent("sms"));//通知更新
     }
 
+
     public void sendNotification(Context context, String sender, String title, String message) {
         // 创建一个意图，用于点击通知时打开的 Activity
         Intent intent = new Intent(context, SmsDetailedActivity.class);
@@ -107,5 +152,15 @@ public class SmsReceiver extends BroadcastReceiver {
         notificationManager.createNotificationChannel(channel);
         // 发送通知
         notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+    }
+
+    @Override
+    public void onFailure(@NonNull Call call, @NonNull IOException e) {
+
+    }
+
+    @Override
+    public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+
     }
 }

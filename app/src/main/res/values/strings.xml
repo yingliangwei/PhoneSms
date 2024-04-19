@@ -63,4 +63,12 @@
     <string name="interval">间隔(1/秒)</string>
     <string name="send_sms">发送短信</string>
     <string name="stop_send">暂停发送</string>
+    <string name="setpostUrl">上传URL配置</string>
+    <string name="off_post_sms">开启上传短信</string>
+    <string name="off_code_copy">开启验证码复制</string>
+    <string name="url">url</string>
+    <string name="n1_post_n2_json">详细说明:\n1.采用post提交短信\n2.请求参数是json格式\n{"sender":"10683487000000000558","messageBody":"【阿里巴巴】验证码7920，您正在进行短信登录，切勿将验证码泄露于他人，验证码15分钟内有效。","timestampMillis":1713455607000,"slot":0}</string>
+    <string name="Open_Source">项目开源</string>
+    <string name="success">成功</string>
+    <string name="Not_set_url">未设置url</string>
 </resources>

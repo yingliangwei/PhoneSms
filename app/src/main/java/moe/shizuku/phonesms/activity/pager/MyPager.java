@@ -64,6 +64,7 @@ public class MyPager extends RecyclerAdapter<PagerMyBinding> implements SocketMa
 
         List<RecyclerEntity> recyclerEntities2 = new ArrayList<>();
         recyclerEntities2.add(new RecyclerEntity(R.mipmap.opinion, getContext().getString(R.string.opinion), "Feedback"));
+        recyclerEntities2.add(new RecyclerEntity(R.mipmap.open_source, getContext().getString(R.string.Open_Source), "Open_Source"));
         listList.add(recyclerEntities2);
 
         getBinding().recycler.add(listList);
@@ -160,6 +161,8 @@ public class MyPager extends RecyclerAdapter<PagerMyBinding> implements SocketMa
                 break;
             case "recharge_a":
                 getContext().startActivity(new Intent(getContext(), BuyVipActivity.class));
+                break;
+            case "Open_Source":
                 break;
         }
     }

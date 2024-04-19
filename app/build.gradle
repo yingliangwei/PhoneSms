@@ -34,6 +34,7 @@ android {
 dependencies {
     implementation project(path: ':widget')
     implementation project(path: ':network')
+    implementation libs.okhttp
     implementation libs.glide
     implementation libs.gson
     implementation libs.appcompat

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
@@ -40,16 +41,19 @@ public class SetActivity extends AppXCompatActivity<ActivitySetBinding> implemen
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         sharedPreferencesManager = new SharedPreferencesManager(this, SharedPreferencesManager.set);
-        initToolbar();
         initRecycler();
     }
 
     private void initRecycler() {
         List<List<RecyclerEntity>> listList = new ArrayList<>();
         boolean verification = sharedPreferencesManager.getBool("verification", false);
+        boolean postSms = sharedPreferencesManager.getBool("postSms", false);
 
         List<RecyclerEntity> recyclerEntities = new ArrayList<>();
-        recyclerEntities.add(new RecyclerEntity(R.mipmap.copy, "验证码复制", "verification", true, verification));
+        recyclerEntities.add(new RecyclerEntity(R.mipmap.url, getString(R.string.setpostUrl), "url"));
+        recyclerEntities.add(new RecyclerEntity(R.mipmap.url, getString(R.string.off_post_sms), "postSms", true, postSms));
+
+        recyclerEntities.add(new RecyclerEntity(R.mipmap.copy, getString(R.string.off_code_copy), "verification", true, verification));
         listList.add(recyclerEntities);
 
         List<RecyclerEntity> recyclerEntities1 = new ArrayList<>();
@@ -61,9 +65,6 @@ public class SetActivity extends AppXCompatActivity<ActivitySetBinding> implemen
         binding.recycler.setOnRecyclerItemClickListener(this);
     }
 
-    private void initToolbar() {
-        setNavigationOnClickListener(binding.toolbar);
-    }
 
     @Override
     public void onItemClick(RecyclerEntity entity, int position) {
@@ -80,8 +81,20 @@ public class SetActivity extends AppXCompatActivity<ActivitySetBinding> implemen
 
     @Override
     public void onItemClick(RecyclerEntity entity, int position, boolean box) {
-        if (entity.getKey().equals("verification")) {
-            sharedPreferencesManager.savaBool("verification", box);
+        SharedPreferencesManager sharedPreferencesManager = new SharedPreferencesManager(this, SharedPreferencesManager.user);
+        if (sharedPreferencesManager.getInt("isVip", 0) == 1) {
+            if (entity.getKey().equals("verification")) {
+                sharedPreferencesManager.savaBool("verification", box);
+            } else if (entity.getKey().equals("postSms")) {
+                String url = sharedPreferencesManager.getString("url", null);
+                if (url == null) {
+                    Toast.makeText(this, R.string.Not_set_url, Toast.LENGTH_SHORT).show();
+                } else {
+                    sharedPreferencesManager.savaBool("postSms", box);
+                }
+            }
+        } else {
+            Toast.makeText(this, R.string.buy_vip, Toast.LENGTH_SHORT).show();
         }
     }
 
