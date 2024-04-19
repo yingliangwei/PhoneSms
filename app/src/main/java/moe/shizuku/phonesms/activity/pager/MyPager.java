@@ -2,6 +2,7 @@ package moe.shizuku.phonesms.activity.pager;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Looper;
 import android.view.MenuItem;
 import android.view.View;
@@ -163,6 +164,9 @@ public class MyPager extends RecyclerAdapter<PagerMyBinding> implements SocketMa
                 getContext().startActivity(new Intent(getContext(), BuyVipActivity.class));
                 break;
             case "Open_Source":
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                Uri uri = Uri.parse("https://github.com/yingliangwei/PhoneSms/");
+                intent.setData(uri);
                 break;
         }
     }
