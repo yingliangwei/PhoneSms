@@ -167,6 +167,7 @@ public class MyPager extends RecyclerAdapter<PagerMyBinding> implements SocketMa
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 Uri uri = Uri.parse("https://github.com/yingliangwei/PhoneSms/");
                 intent.setData(uri);
+                getContext().startActivity(intent);
                 break;
         }
     }
