@@ -10,16 +10,22 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.baolian.network.overall.Overall;
+import com.xframe.widget.recycler.RecyclerItemClickListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +73,52 @@ public class SmsPager extends RecyclerAdapter<PagerSmsBinding> implements Runnab
         smsAdapter = new SmsAdapter(getContext(), entities);
         getBinding().recycler.setLayoutManager(new LinearLayoutManager(getContext()));
         getBinding().recycler.setAdapter(smsAdapter);
+        getBinding().recycler.addOnItemTouchListener(new RecyclerItemClickListener(getContext(), new RecyclerItemClickListener.OnItemClickListener.Normal() {
+            @Override
+            public void onItemLongClick(View view, int position) {
+                showMenu(view, position);
+            }
+
+            @Override
+            public void onItemClick(View view, int position) {
+                SmsEntity smsEntity = entities.get(position);
+                Intent intent = new Intent(getContext(), SmsDetailedActivity.class);
+                intent.putExtra("sender", smsEntity.title);
+                getContext().startActivity(intent);
+            }
+        }));
+    }
+
+    private void showMenu(View view, int position) {
+        PopupMenu popupMenu = new PopupMenu(getContext(), view);
+        popupMenu.getMenuInflater().inflate(R.menu.menu_sms_dialog, popupMenu.getMenu());
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == R.id.delete) {
+
+                    SmsEntity smsEntity = entities.get(position);
+                    entities.remove(position);
+                    smsAdapter.notifyItemRemoved(position);
+
+                    DBOpenHelper dbOpenHelper = new DBOpenHelper(getContext(), "sms", null, 1);
+                    SQLiteDatabase database = dbOpenHelper.getReadableDatabase();
+                    database.delete("sms", "sender=?", new String[]{smsEntity.title});
+                    database.close();
+                    dbOpenHelper.close();
+
+                    DBOpenHelper dbOpenHelper1 = new DBOpenHelper(getContext(), "sms_message", null, 1);
+                    SQLiteDatabase database1 = dbOpenHelper1.getReadableDatabase();
+                    database1.delete("sms_message", "sender=?", new String[]{smsEntity.title});
+                    database1.close();
+                    dbOpenHelper1.close();
+                    return true;
+                }
+                return false;
+            }
+        });
+        popupMenu.show();
     }
 
     @Override

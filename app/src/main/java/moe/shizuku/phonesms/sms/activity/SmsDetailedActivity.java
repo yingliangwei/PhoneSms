@@ -15,11 +15,14 @@ import android.os.Looper;
 import android.telephony.SmsManager;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
+
+import com.xframe.widget.recycler.RecyclerItemClickListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -145,7 +148,43 @@ public class SmsDetailedActivity extends AppXCompatActivity<ActivitySmsDetailedB
         adapter = new TextAdapter(this, strings);
         binding.recycler.setLayoutManager(new LinearLayoutManager(this));
         binding.recycler.setAdapter(adapter);
+        binding.recycler.addOnItemTouchListener(new RecyclerItemClickListener(this, new RecyclerItemClickListener.OnItemClickListener.Normal() {
+            @Override
+            public void onItemLongClick(View view, int position) {
+                showMenu(view, position);
+            }
+        }));
     }
+
+    private void showMenu(View view, int position) {
+        PopupMenu popupMenu = new PopupMenu(this, view);
+        popupMenu.getMenuInflater().inflate(R.menu.menu_sms_dialog, popupMenu.getMenu());
+        popupMenu.getMenu().findItem(R.id.copy).setVisible(true);
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == R.id.delete) {
+                    SmsEntity smsEntity = strings.get(position);
+
+                    strings.remove(position);
+                    adapter.notifyItemRemoved(position);
+
+                    DBOpenHelper dbOpenHelper1 = new DBOpenHelper(SmsDetailedActivity.this, "sms_message", null, 1);
+                    SQLiteDatabase database1 = dbOpenHelper1.getReadableDatabase();
+                    database1.delete("sms_message", "timestamp=?", new String[]{String.valueOf(smsEntity.time)});
+                    database1.close();
+                    dbOpenHelper1.close();
+                    return true;
+                } else if (item.getItemId() == R.id.copy) {
+                    SmsEntity entity = strings.get(position);
+                    DynamicSmsVerifyCode.copyToClipboard(SmsDetailedActivity.this, entity.message);
+                }
+                return false;
+            }
+        });
+        popupMenu.show();
+    }
+
 
     @Override
     public void handleMessage(int w) {

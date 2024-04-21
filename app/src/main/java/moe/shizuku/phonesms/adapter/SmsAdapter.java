@@ -15,7 +15,6 @@ import moe.shizuku.phonesms.sms.activity.SmsDetailedActivity;
 import moe.shizuku.phonesms.util.TimeUtils;
 
 public class SmsAdapter extends RecyclerAdapter<ItemSmsBinding> {
-
     private final List<SmsEntity> smsEntities;
 
     public SmsAdapter(Context context, List<SmsEntity> smsEntities) {
@@ -30,14 +29,6 @@ public class SmsAdapter extends RecyclerAdapter<ItemSmsBinding> {
         binding.title.setText(smsEntity.title);
         binding.message.setText(smsEntity.message);
         binding.time.setText(TimeUtils.getTimeFromTimestamp(getContext(), smsEntity.time));
-        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getContext(), SmsDetailedActivity.class);
-                intent.putExtra("sender", smsEntity.title);
-                getContext().startActivity(intent);
-            }
-        });
     }
 
     @Override

@@ -75,6 +75,9 @@ public class SetActivity extends AppXCompatActivity<ActivitySetBinding> implemen
             case "about":
                 startActivity(new Intent(this, AboutActivity.class));
                 break;
+            case "url":
+                startActivity(new Intent(this, SmsUrlActivity.class));
+                break;
         }
     }
 
