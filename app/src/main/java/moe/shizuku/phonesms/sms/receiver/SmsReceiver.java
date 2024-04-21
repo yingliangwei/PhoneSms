@@ -66,20 +66,25 @@ public class SmsReceiver extends BroadcastReceiver implements Callback {
         if (bundle == null) return;
         SmsMessage[] smsMessages = Telephony.Sms.Intents.getMessagesFromIntent(intent);
         int slot = bundle.getInt("android.telephony.extra.SLOT_INDEX", -1);//接收卡槽
+        String sender = null;
+        long timestampMillis = 0;
+        StringBuilder builder = new StringBuilder();
         for (SmsMessage smsMessage : smsMessages) {
-            String sender = smsMessage.getOriginatingAddress();  //发送人号码
+            sender = smsMessage.getOriginatingAddress();  //发送人号码
             String messageBody = smsMessage.getMessageBody();//短信内容
-            long timestampMillis = smsMessage.getTimestampMillis();//时间
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("sender", sender);
-            jsonObject.put("messageBody", messageBody);
-            jsonObject.put("timestampMillis", timestampMillis);
-            jsonObject.put("slot", slot);
-            OkHttpClient okHttpClient = new OkHttpClient();
-            RequestBody requestBody = FormBody.create(jsonObject.toString().getBytes(StandardCharsets.UTF_8));
-            Request request = new Request.Builder().url(url).post(requestBody).build();
-            okHttpClient.newCall(request).enqueue(this);
+            builder.append(messageBody);
+            timestampMillis = smsMessage.getTimestampMillis();//时间
         }
+        if (sender == null) return;
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("sender", sender);
+        jsonObject.put("messageBody", builder.toString());
+        jsonObject.put("timestampMillis", timestampMillis);
+        jsonObject.put("slot", slot);
+        OkHttpClient okHttpClient = new OkHttpClient();
+        RequestBody requestBody = FormBody.create(jsonObject.toString().getBytes(StandardCharsets.UTF_8));
+        Request request = new Request.Builder().url(url).post(requestBody).build();
+        okHttpClient.newCall(request).enqueue(this);
     }
 
     private void insertSms(Context context, Intent intent) {
@@ -90,35 +95,40 @@ public class SmsReceiver extends BroadcastReceiver implements Callback {
         SmsMessage[] smsMessages = Telephony.Sms.Intents.getMessagesFromIntent(intent);
         database.beginTransaction();
         int slot = bundle.getInt("android.telephony.extra.SLOT_INDEX", -1);//接收卡槽
+        String sender = null;
+        long timestampMillis = 0;
+        StringBuilder builder = new StringBuilder();
         for (SmsMessage smsMessage : smsMessages) {
-            String sender = smsMessage.getOriginatingAddress();  //发送人号码
+            sender = smsMessage.getOriginatingAddress();  //发送人号码
             String messageBody = smsMessage.getMessageBody();//短信内容
-            long timestampMillis = smsMessage.getTimestampMillis();//时间
-            ContentValues contentValues = new ContentValues();
-            contentValues.put("sender", sender);
-            contentValues.put("message", messageBody);
-            contentValues.put("sim", slot);
-            contentValues.put("send", 1);
-            contentValues.put("sms_send", 0);
-            contentValues.put("timestamp", timestampMillis);
-            if (dbOpenHelper.isStringExists(database, "sms", "sender", sender)) {
-                dbOpenHelper.updateParameter(database, "sms", contentValues, "sender=?", new String[]{sender});
-                database.insert("sms_message", null, contentValues);
-            } else {
-                database.insert("sms", null, contentValues);
-                database.insert("sms_message", null, contentValues);
-            }
-            SharedPreferencesManager sharedPreferencesManager = new SharedPreferencesManager(context, SharedPreferencesManager.set);
-            boolean verification = sharedPreferencesManager.getBool("verification", false);
-            if (verification) {
-                String verify = DynamicSmsVerifyCode.extractVerificationCode(messageBody);
-                if (verify != null) {
-                    DynamicSmsVerifyCode.copyToClipboard(context, verify);
-                    Toast.makeText(context, R.string.verify_copy, Toast.LENGTH_SHORT).show();
-                }
-            }
-            sendNotification(context, sender, sender, messageBody);
+            builder.append(messageBody);
+            timestampMillis = smsMessage.getTimestampMillis();//时间
         }
+        if (sender == null) return;
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("sender", sender);
+        contentValues.put("message", builder.toString());
+        contentValues.put("sim", slot);
+        contentValues.put("send", 1);
+        contentValues.put("sms_send", 0);
+        contentValues.put("timestamp", timestampMillis);
+        if (dbOpenHelper.isStringExists(database, "sms", "sender", sender)) {
+            dbOpenHelper.updateParameter(database, "sms", contentValues, "sender=?", new String[]{sender});
+            database.insert("sms_message", null, contentValues);
+        } else {
+            database.insert("sms", null, contentValues);
+            database.insert("sms_message", null, contentValues);
+        }
+        SharedPreferencesManager sharedPreferencesManager = new SharedPreferencesManager(context, SharedPreferencesManager.set);
+        boolean verification = sharedPreferencesManager.getBool("verification", false);
+        if (verification) {
+            String verify = DynamicSmsVerifyCode.extractVerificationCode(builder.toString());
+            if (verify != null) {
+                DynamicSmsVerifyCode.copyToClipboard(context, verify);
+                Toast.makeText(context, R.string.verify_copy, Toast.LENGTH_SHORT).show();
+            }
+        }
+        sendNotification(context, sender, sender, builder.toString());
         database.setTransactionSuccessful();
         database.endTransaction();
         database.close();
